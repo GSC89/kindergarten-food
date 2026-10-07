@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lenau Food Payment Calculator 2026–2027</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --closed: #fee2e2;
+      --closed-text: #991b1b;
+      --missed: #fef3c7;
+      --missed-text: #92400e;
+      --weekend: #f3f4f6;
+      --border: #e5e7eb;
+      --good: #0f766e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 18px 48px;
+    }
+    h1 { margin: 0 0 6px; font-size: clamp(28px, 4vw, 42px); }
+    .subtitle { color: var(--muted); margin-bottom: 24px; }
+    .top {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+    }
+    .amount {
+      font-size: clamp(36px, 7vw, 64px);
+      font-weight: 800;
+      line-height: 1;
+      color: var(--good);
+      margin: 8px 0 10px;
+    }
+    .summary { color: var(--muted); }
+    label { font-weight: 700; display: block; margin-bottom: 8px; }
+    select, input {
+      width: 100%;
+      font: inherit;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+    }
+    .controls { display: grid; gap: 14px; }
+    .calendar {
+      margin-top: 18px;
+    }
+    .cal-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .cal-header h2 { margin: 0; font-size: 24px; }
+    .hint { color: var(--muted); font-size: 14px; }
+    .weekdays, .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+    .weekdays div {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 0;
+    }
+    .day {
+      min-height: 78px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 9px;
+      background: #fff;
+      position: relative;
+      user-select: none;
+    }
+    .day.active { cursor: pointer; }
+    .day.active:hover { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+    .day.empty { visibility: hidden; }
+    .day.weekend { background: var(--weekend); color: #9ca3af; }
+    .day.closed { background: var(--closed); color: var(--closed-text); }
+    .day.missed { background: var(--missed); color: var(--missed-text); border-color: #f59e0b; }
+    .num { font-weight: 800; font-size: 18px; }
+    .status { font-size: 12px; margin-top: 8px; line-height: 1.2; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .key { display: inline-flex; align-items: center; gap: 7px; }
+    .dot { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border); }
+    .dot.pay { background: white; }
+    .dot.closed { background: var(--closed); }
+    .dot.missed { background: var(--missed); }
+    .dot.weekend { background: var(--weekend); }
+    .details {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+    .stat b { display: block; font-size: 23px; margin-top: 4px; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    button {
+      border: 0;
+      background: #111827;
+      color: white;
+      padding: 10px 13px;
+      border-radius: 10px;
+      font: inherit;
+      cursor: pointer;
+    }
+    button:hover { opacity: .92; }
+    .note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    @media (max-width: 760px) {
+      .top { grid-template-columns: 1fr; }
+      .details { grid-template-columns: repeat(2, 1fr); }
+      .day { min-height: 62px; padding: 7px; }
+      .status { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Lenau Food Payment</h1>
+  <div class="subtitle">School year 2026–2027 · Timiș · 25 RON/day</div>
+
+  <div class="top">
+    <section class="card">
+      <div id="headline">For this month you have to pay</div>
+      <div class="amount" id="amount">0 RON</div>
+      <div class="summary" id="summary"></div>
+    </section>
+
+    <section class="card controls">
+      <div>
+        <label for="month">Month</label>
+        <select id="month"></select>
+      </div>
+      <div>
+        <label for="price">Price per day (RON)</label>
+        <input id="price" type="number" min="0" step="1" value="25" />
+      </div>
+      <button id="clear">Clear missed days for this month</button>
+    </section>
+  </div>
+
+  <section class="card calendar">
+    <div class="cal-header">
+      <div>
+        <h2 id="monthTitle"></h2>
+        <div class="hint">Click a normal kindergarten day to mark/unmark it as missed.</div>
+      </div>
+    </div>
+
+    <div class="weekdays">
+      <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+    </div>
+    <div class="days" id="days"></div>
+
+    <div class="legend">
+      <div class="key"><span class="dot pay"></span> Payable day</div>
+      <div class="key"><span class="dot closed"></span> Vacation / holiday / day off</div>
+      <div class="key"><span class="dot missed"></span> Child absent</div>
+      <div class="key"><span class="dot weekend"></span> Weekend</div>
+    </div>
+
+    <div class="details">
+      <div class="stat"><span>Weekdays</span><b id="weekdayCount">0</b></div>
+      <div class="stat"><span>Closed / holidays</span><b id="closedCount">0</b></div>
+      <div class="stat"><span>Missed days</span><b id="missedCount">0</b></div>
+      <div class="stat"><span>Payable days</span><b id="payableCount">0</b></div>
+    </div>
+
+    <div class="note">
+      The days off and school holidays are based on the official school calendar for Timiș County 2026–2027. Missed days are saved only in this browser.
+    </div>
+  </section>
+</div>
+
+<script>
+const MONTHS = [
+  {y:2026,m:9,name:"September 2026"},
+  {y:2026,m:10,name:"October 2026"},
+  {y:2026,m:11,name:"November 2026"},
+  {y:2026,m:12,name:"December 2026"},
+  {y:2027,m:1,name:"January 2027"},
+  {y:2027,m:2,name:"February 2027"},
+  {y:2027,m:3,name:"March 2027"},
+  {y:2027,m:4,name:"April 2027"},
+  {y:2027,m:5,name:"May 2027"},
+  {y:2027,m:6,name:"June 2027"}
+];
+
+// Non-payable weekdays are based on the 2026–2027 school calendar for Timiș County.
+// Weekends are excluded automatically.
+const CLOSED = new Set([
+  "2026-09-01","2026-09-02","2026-09-03","2026-09-04",
+  "2026-10-05","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30",
+  "2026-11-30",
+  "2026-12-01","2026-12-23","2026-12-24","2026-12-25","2026-12-28","2026-12-29","2026-12-30","2026-12-31",
+  "2027-01-01","2027-01-04","2027-01-05","2027-01-06","2027-01-07","2027-01-08",
+  "2027-02-22","2027-02-23","2027-02-24","2027-02-25","2027-02-26",
+  "2027-04-26","2027-04-27","2027-04-28","2027-04-29","2027-04-30",
+  "2027-05-03","2027-05-04",
+  "2027-06-01","2027-06-21","2027-06-22","2027-06-23","2027-06-24","2027-06-25","2027-06-28","2027-06-29","2027-06-30"
+]);
+
+const missed = new Set(JSON.parse(localStorage.getItem("kgMissedDays2026_27") || "[]"));
+
+const monthSelect = document.getElementById("month");
+const priceInput = document.getElementById("price");
+const daysEl = document.getElementById("days");
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function key(y,m,d){ return `${y}-${pad(m)}-${pad(d)}`; }
+function isWeekend(y,m,d){
+  const dow = new Date(y,m-1,d).getDay();
+  return dow === 0 || dow === 6;
+}
+function daysInMonth(y,m){ return new Date(y,m,0).getDate(); }
+function mondayIndex(y,m,d=1){
+  const js = new Date(y,m-1,d).getDay(); // 0 Sun
+  return (js + 6) % 7; // 0 Mon
+}
+function saveMissed(){
+  localStorage.setItem("kgMissedDays2026_27", JSON.stringify([...missed]));
+}
+
+MONTHS.forEach((x,i)=>{
+  const o = document.createElement("option");
+  o.value = i;
+  o.textContent = x.name;
+  monthSelect.appendChild(o);
+});
+
+function defaultMonthIndex(){
+  const now = new Date();
+  const idx = MONTHS.findIndex(x => x.y === now.getFullYear() && x.m === now.getMonth()+1);
+  return idx >= 0 ? idx : 0;
+}
+monthSelect.value = defaultMonthIndex();
+
+function render(){
+  const cfg = MONTHS[Number(monthSelect.value)];
+  const price = Math.max(0, Number(priceInput.value) || 0);
+  const totalDays = daysInMonth(cfg.y,cfg.m);
+  const first = mondayIndex(cfg.y,cfg.m);
+
+  document.getElementById("monthTitle").textContent = cfg.name;
+  daysEl.innerHTML = "";
+
+  for(let i=0;i<first;i++){
+    const e=document.createElement("div");
+    e.className="day empty";
+    daysEl.appendChild(e);
+  }
+
+  let weekdays=0, closed=0, missedCount=0, payable=0;
+
+  for(let d=1;d<=totalDays;d++){
+    const dateKey = key(cfg.y,cfg.m,d);
+    const weekend = isWeekend(cfg.y,cfg.m,d);
+    const isClosed = CLOSED.has(dateKey);
+    const isMissed = missed.has(dateKey);
+
+    if(!weekend) weekdays++;
+    if(!weekend && isClosed) closed++;
+    if(!weekend && !isClosed && isMissed) missedCount++;
+    if(!weekend && !isClosed && !isMissed) payable++;
+
+    const el=document.createElement("div");
+    el.className="day";
+    let status="Pay";
+
+    if(weekend){
+      el.classList.add("weekend");
+      status="Weekend";
+    } else if(isClosed){
+      el.classList.add("closed");
+      status="No payment";
+    } else {
+      el.classList.add("active");
+      if(isMissed){
+        el.classList.add("missed");
+        status="Missed";
+      }
+      el.addEventListener("click",()=>{
+        if(missed.has(dateKey)) missed.delete(dateKey);
+        else missed.add(dateKey);
+        saveMissed();
+        render();
+      });
+    }
+
+    el.innerHTML=`<div class="num">${d}</div><div class="status">${status}</div>`;
+    daysEl.appendChild(el);
+  }
+
+  const amount = payable * price;
+  document.getElementById("amount").textContent = `${amount.toLocaleString("en-US")} RON`;
+  document.getElementById("summary").textContent =
+    `${payable} payable day${payable===1?"":"s"} × ${price} RON`;
+  document.getElementById("headline").textContent =
+    `For ${cfg.name} you have to pay`;
+  document.getElementById("weekdayCount").textContent = weekdays;
+  document.getElementById("closedCount").textContent = closed;
+  document.getElementById("missedCount").textContent = missedCount;
+  document.getElementById("payableCount").textContent = payable;
+}
+
+monthSelect.addEventListener("change", render);
+priceInput.addEventListener("input", render);
+document.getElementById("clear").addEventListener("click",()=>{
+  const cfg = MONTHS[Number(monthSelect.value)];
+  for(const d of [...missed]){
+    if(d.startsWith(`${cfg.y}-${pad(cfg.m)}-`)) missed.delete(d);
+  }
+  saveMissed();
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
